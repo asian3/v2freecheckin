@@ -64,5 +64,5 @@ jobs:
         fi
         for ((i=0;i<$user_num;i++))
         do
-        python3 main.py --username ${user_list[$i]} --password ${pwd_list[$i]} --remail=&{remail} --semail=&{semail} --secode=${secode}
+        python3 main.py --username ${user_list[$i]} --password ${pwd_list[$i]} --remail=${remail} --semail=${semail} --secode=${secode}
         done
