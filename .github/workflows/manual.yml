@@ -39,9 +39,9 @@ jobs:
       run: |
         user='${{ secrets.USER }}'
         pwd='${{ secrets.PWD }}'
-        remail='${secrets.remail}'        
-        semail='${secrets.semail}'
-        secode='${secrets.secode}'
+        remail='${{secrets.remail}}'        
+        semail='${{secrets.semail}}'
+        secode='${{secrets.secode}}'
         
         user_list=()
         pwd_list=()
