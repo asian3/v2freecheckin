@@ -9,7 +9,7 @@ v2free checkin ,send email
 
 
     |key    |value                     |
-    |:--:   |:------------------------:|
+
     |USER   |123@qq.com,567@outlook.com|
     |PWD    |ccc,aaa                   |
     |remail |abc@163.com               |
