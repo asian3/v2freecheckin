@@ -1,0 +1,68 @@
+name: V2freeCheckin
+
+on:
+  workflow_dispatch:
+  watch:
+    types: [ started ]
+  schedule:
+    - cron: '45 15 * * *'
+    
+permissions:
+  actions: write
+  checks: write
+  contents: write
+  deployments: write
+  issues: write
+  packages: write
+  pull-requests: write
+  repository-projects: write
+  security-events: write
+  statuses: write
+
+jobs:
+  check-in:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Python
+      run: |
+        sudo apt update && \
+        sudo apt install python3
+      
+    - name: requirements
+      run: |
+        pip3 install -r requirements.txt
+        
+    - name: Checkin
+      run: |
+        user='${{ secrets.USER }}'
+        pwd='${{ secrets.PWD }}'
+        remail='${secrets.remail}'        
+        semail='${secrets.semail}'
+        secode='${secrets.secode}'
+        
+        user_list=()
+        pwd_list=()
+        IFS=","
+        for u in ${user[*]}
+        do
+        user_list[${#user_list[*]}]=${u}
+        done
+        for p in ${pwd[*]}
+        do
+        pwd_list[${#pwd_list[*]}]=${p}
+        done
+        user_num=${#user_list[*]}
+        pwd_num=${#pwd_list[*]}
+        if [ $user_num != $pwd_num ];then
+        echo "账号和密码个数不对应"
+        exit 1
+        else
+        echo "共有 $user_num 个账号，即将开始签到"
+        fi
+        for ((i=0;i<$user_num;i++))
+        do
+        python3 main.py --username ${user_list[$i]} --password ${pwd_list[$i]} --remail=&{remail} --semail=&{semail} --secode=${secode}
+        done
