@@ -74,6 +74,7 @@ def send(info, mail, receivers, subject='', imgpth=''):
 
 
 if __name__ == "__main__":
+    print('start')
     parser = argparse.ArgumentParser(description='V2free签到脚本')
     parser.add_argument('--username', type=str, help='账号')
     parser.add_argument('--password', type=str, help='密码')
