@@ -6,40 +6,35 @@ from email.mime.text import MIMEText
 import time
 import argparse
 
-
 def main(usr, pw):
-    url = 'https://w1.v2dns.xyz/user/checkin'
-    headers = {
-        'Accept': 'application/json, text/javascript, */*; q=0.01',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Accept-Language': 'zh-CN,zh;q=0.9',
-        'Connection': 'keep-alive',
-        'Content-Length': '0',
-        'Cookie': '_ga=GA1.1.1097224415.1644561485; _gcl_au=1.1.1299104476.1644561485; uid=31219; email=shenjie8278%40126.com; key=772b4f245432c928abc93ac4257dbcb1b486aa43ba89d; ip=873971ac1430cbeeed56b9b0a3781c88; expire_in=1676105429; _ga_NC10VPE6SR=GS1.1.1644803702.3.0.1644803704.0; crisp-client%2Fsession%2Fa47ae3dd-53d8-4b15-afae-fb4577f7bcd0=session_625114a8-61e3-4a99-a820-2d65e0b44b67; crisp-client%2Fsocket%2Fa47ae3dd-53d8-4b15-afae-fb4577f7bcd0=0',
-        'Host': 'w1.v2dns.xyz',
-        'Origin': 'https://w1.v2dns.xyz',
-        'Referer': 'https://w1.v2dns.xyz/user/',
-        'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="98", "Google Chrome";v="98"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"macOS"',
-        'Sec-Fetch-Dest': 'empty',
-        'Sec-Fetch-Mode': 'cors',
-        'Sec-Fetch-Site': 'same-origin',
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36'
-    }
-
+    client = requests.Session()
+    login_url = "https://w1.v2free.net/auth/login"
+    sign_url = "https://w1.v2free.net/user/checkin"
     data = {
         "email": usr,
         "passwd": pw,
         "code": "",
     }
-    response = requests.post(url=url, data=data, headers=headers).json()
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:74.0) Gecko/20100101 Firefox/76.0",
+        "Referer": "https://w1.v2free.net/auth/login",
+    }
+    client.post(login_url, data=data, headers=headers)
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:74.0) Gecko/20100101 Firefox/76.0",
+        "Referer": "https://w1.v2free.net/user",
+    }
+    response = client.post(sign_url, headers=headers).json()
+    print(response)
 
     msg = usr + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + response['msg']
     if response['ret'] == 1:
         msg += '剩余流量:' + str(response['msg']['trafficInfo']['unUsedTraffic'])
-
     return msg
+
+
 
 
 # 发送到我的邮箱
