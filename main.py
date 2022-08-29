@@ -31,7 +31,7 @@ def main(usr, pw):
 
     msg = usr + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + response['msg']
     if response['ret'] == 1:
-        msg +=str(response(['trafficInfo']['unUsedTraffic']))
+        msg +="剩余流量："+response['trafficInfo']['unUsedTraffic']
     return msg
 
 
