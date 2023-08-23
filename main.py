@@ -40,7 +40,7 @@ def main(usr, pw):
 # 发送到我的邮箱
 def send(info, mail, receivers, subject='', imgpth=''):
     #if info or mail[0] or mail[1] or receivers == '': return
-    if time.strftime("%d", time.localtime())%3!=4:return
+    if int(time.strftime("%d", time.localtime()))% 3!= 0:return
     sender,key = mail
     message = MIMEMultipart('mixed')
     if subject == "": subject = info
