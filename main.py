@@ -26,12 +26,11 @@ def main(usr, pw):
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:74.0) Gecko/20100101 Firefox/76.0",
         "Referer": "https://w1.v2free.net/user",
     }
-    response = client.post(sign_url, headers=headers).json()
-    print(response)
-
-    msg = usr + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + response['msg']
-    if response['ret'] == 1:
-        msg +="剩余流量："+response['trafficInfo']['unUsedTraffic']
+    response = client.post(sign_url, headers=headers)
+    msg = usr + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    if response.status_code == 200:
+        msg += '签到成功'
+    else:msg += '签到失败'
     return msg
 
 
@@ -40,6 +39,7 @@ def main(usr, pw):
 # 发送到我的邮箱
 def send(info, mail, receivers, subject='', imgpth=''):
     #if info or mail[0] or mail[1] or receivers == '': return
+    if int(time.strftime("%d", time.localtime()))% 3!= 0:return
     sender,key = mail
     message = MIMEMultipart('mixed')
     if subject == "": subject = info
@@ -79,4 +79,3 @@ if __name__ == "__main__":
     msg = main(args.username,args.password)
     print(msg)
     send(info=msg,mail=[args.semail,args.secode],receivers=args.remail)
-
