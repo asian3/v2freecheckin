@@ -27,10 +27,10 @@ def main(usr, pw):
         "Referer": "https://w1.v2free.net/user",
     }
     response = client.post(sign_url, headers=headers)
-    msg = usr + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    if response.status_code == 200:
-        msg += '签到成功'
-    else:msg += '签到失败'
+    msg = usr + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())+response.json()["msg"]
+    # if response.status_code == 200:
+    #     msg += '签到成功'
+    # else:msg += '签到失败'
     return msg
 
 
