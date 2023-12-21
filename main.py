@@ -77,6 +77,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     msg = main(args.username,args.password)
     print(msg)
-    if int(time.strftime("%d", time.localtime()))% 3!= 0: 
+    if int(time.strftime("%d", time.localtime()))% 3== 0: 
         send(info=msg,mail=[args.semail,args.secode],receivers=args.remail)
 
