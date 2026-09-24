@@ -1,4 +1,5 @@
 import requests
+import re
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
@@ -6,32 +7,82 @@ from email.mime.text import MIMEText
 import time
 import argparse
 
+BASE_URL = "https://www.v2free.net"  # 新版登录/签到域名
+
+UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+      "(KHTML, like Gecko) Chrome/120.0 Safari/537.36")
+
+
 def main(usr, pw):
     client = requests.Session()
-    login_url = "https://w1.v2free.net/auth/login"
-    sign_url = "https://w1.v2free.net/user/checkin"
-    data = {
+    client.headers.update({"User-Agent": UA})
+
+    # 1. 访问登录页，获取初始 Cookie
+    client.get(BASE_URL + "/auth/login")
+
+    # 2. 登录（新版表单字段：email/passwd/code/agree/remember_me）
+    login_data = {
         "email": usr,
         "passwd": pw,
         "code": "",
+        "agree": "1",       # 新版登录必须携带 agree=1
+        "remember_me": "",
     }
+    resp = client.post(
+        BASE_URL + "/auth/login",
+        data=login_data,
+        headers={
+            "Referer": BASE_URL + "/auth/login",
+            "X-Requested-With": "XMLHttpRequest",
+        },
+    )
+    try:
+        login_result = resp.json()
+    except ValueError:
+        return usr + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + " 登录失败：返回内容不是 JSON"
+    if login_result.get("ret") != 1:
+        return usr + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + " 登录失败：" + str(login_result.get("msg", resp.text))
 
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:74.0) Gecko/20100101 Firefox/76.0",
-        "Referer": "https://w1.v2free.net/auth/login",
-    }
-    client.post(login_url, data=data, headers=headers)
+    # 3. 签到（接口未变：POST /user/checkin）
+    resp = client.post(
+        BASE_URL + "/user/checkin",
+        headers={
+            "Referer": BASE_URL + "/user",
+            "X-Requested-With": "XMLHttpRequest",
+        },
+    )
+    try:
+        checkin_result = resp.json()
+    except ValueError:
+        return usr + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + " 签到失败：返回内容不是 JSON"
 
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:74.0) Gecko/20100101 Firefox/76.0",
-        "Referer": "https://w1.v2free.net/user",
-    }
-    response = client.post(sign_url, headers=headers)
-    msg = usr + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())+response.json()["msg"]
-    # if response.status_code == 200:
-    #     msg += '签到成功'
-    # else:msg += '签到失败'
-    return msg
+    if checkin_result.get("ret") == 1:
+        msg = str(checkin_result.get("msg", "签到成功"))
+    else:
+        msg = "签到失败：" + str(checkin_result.get("msg", resp.text))
+
+    # 4. 从用户中心页面获取当前流量信息（签到已过/失败时也能拿到）
+    info = fetch_user_info(client)
+    extra = ""
+    if info:
+        extra = "，剩余流量：" + info.get("剩余流量", "?") + "，今日已用：" + info.get("今日已用", "?")
+    return usr + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + " " + msg + extra
+
+
+def fetch_user_info(client):
+    """登录后读取用户中心页面的账号流量信息"""
+    try:
+        html = client.get(BASE_URL + "/user").text
+        info = {}
+        m = re.search(r'id="remain"[^>]*>([^<]+)<', html)
+        if m:
+            info["剩余流量"] = m.group(1).strip()
+        m = re.search(r'今日已用:\s*<a[^>]*>([^<]+)<', html)
+        if m:
+            info["今日已用"] = m.group(1).strip()
+        return info
+    except Exception:
+        return {}
 
 
 
@@ -69,7 +120,7 @@ def send(info, mail, receivers, subject='', imgpth=''):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='V2free签到脚本')
-    parser.add_argument('--username', type=str, help='账号')
+    parser.add_argument('--username', type=str,help='账号')
     parser.add_argument('--password', type=str, help='密码')
     parser.add_argument('--remail', type=str, help='接收邮箱')
     parser.add_argument('--semail', type=str, help='发送邮箱')
@@ -77,6 +128,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     msg = main(args.username,args.password)
     print(msg)
-    if int(time.strftime("%d", time.localtime()))% 3== 0: 
+    if int(time.strftime("%d", time.localtime()))% 3== 0:
         send(info=msg,mail=[args.semail,args.secode],receivers=args.remail)
 
