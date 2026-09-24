@@ -34,9 +34,10 @@ jobs:
         sudo apt update && \
         sudo apt install python3
       
-    - name: requirements
+    - name: Install dependencies
       run: |
-        pip3 install -r requirements.txt
+        python -m pip install --upgrade pip
+        pip install urllib3==1.26.20 requests==2.31.0 six
         
     - name: Checkin
       run: |
